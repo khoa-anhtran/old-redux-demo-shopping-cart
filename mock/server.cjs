@@ -200,6 +200,15 @@ server.use('/api/carts', authMiddleware);
 
 server.use('/api', router)
 
+server.use((req, res, next) => {
+  const delay = 300 + Math.random() * 1200; // 300–1500ms
+  setTimeout(() => {
+    // 10% chance to simulate network error:
+    if (Math.random() < 0.1) return res.status(503).json({ message: "Temporary outage" });
+    next();
+  }, delay);
+});
+
 const PORT = process.env.PORT || 4000
 server.listen(PORT, () => {
   console.log(`[API] json-server 0.17 running at http://localhost:${PORT}`)
