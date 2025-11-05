@@ -1083,3 +1083,112 @@ $primary-hover: #1d4ed8;
         color: $muted;
     }
 }
+
+/* Variables */
+$bg: #f6f7f9;
+$fg: #171717;
+$muted: #5f6368;
+$card: #ffffff;
+$border: rgba(0, 0, 0, 0.08);
+$shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+/* Dark theme */
+.error-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    background: var(--bg, $bg);
+    color: var(--fg, $fg);
+    padding: 4rem 1rem;
+    font-family:
+        system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        Helvetica,
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji";
+}
+
+.error-page__card {
+    margin: 0 auto;
+    width: min(680px, 92vw);
+    background: var(--card, $card);
+    border: 1px solid var(--border, $border);
+    box-shadow: $shadow;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: left;
+}
+
+.error-page__badge {
+    display: inline-block;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1;
+    padding: 0.4rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border, $border);
+    background: rgba(90, 42, 166, 0.1);
+    color: $brand;
+    margin-bottom: 0.75rem;
+}
+
+.error-page__title {
+    font-size: clamp(1.5rem, 1.1rem + 2vw, 2.2rem);
+    line-height: 1.15;
+    margin: 0.25rem 0 0.5rem;
+}
+
+.error-page__message {
+    margin: 0.25rem 0 1.25rem;
+    font-size: 1rem;
+    color: var(--muted, $muted);
+}
+
+.error-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.ep-btn {
+    appearance: none;
+    border: 1px solid var(--border, $border);
+    background: $brand;
+    color: #fff;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        transform 120ms ease,
+        box-shadow 120ms ease,
+        background 120ms ease;
+
+    &:hover {
+        background: $brand-600;
+    }
+    \n &:active {
+        background: $brand-700;
+        transform: translateY(1px);
+    }
+
+    &--ghost {
+        background: transparent;
+        color: var(--fg, $fg);
+    }
+}
+
+.error-page__footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--muted, $muted);
+}

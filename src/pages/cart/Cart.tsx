@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux"
 import { selectCart, selectCartError, selectCartIsSelectAll, selectCartOpen, selectCartStatus, selectCartSyncError, selectCartSyncStatus } from "./selectors"
 import { cartToggled, checkedOut, fetchCartRequested, itemsRemoved, itemSelectedToggled, quantityDecreased, quantityIncreased, selectAllToggled } from "./actions"
 import CartItem from "./components/CartItem"
-import { roundTo } from "@/utils/math.utils"
+import { roundTo } from "@/utils/helpers"
 import { Modal, notification } from "antd"
 import { selectAuth } from "../auth/selectors"
 

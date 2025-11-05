@@ -1,10 +1,11 @@
 import { useDispatch, useSelector } from "react-redux"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import ProductGrid from "./components/ProductGrid"
 import { itemAdded } from "../cart/actions"
 import { selectProducts, selectProductsError, selectProductsStatus } from "./selectors"
 import { fetchProductsRequested } from "./actions"
-import {  notification } from "antd";
+import { notification } from "antd";
+import SimpleErrorPage from "../layout/SimpleErrorPage"
 
 const Products = () => {
     const dispatch = useDispatch()
@@ -28,12 +29,16 @@ const Products = () => {
             });
     }, [status])
 
-    const onAddToCart = (productId: number) => {
+    const onAddToCart = useCallback((productId: number) => {
         dispatch(itemAdded(productId))
         notification.success({
             message: 'Your product have added',
         });
-    }
+    }, [dispatch])
+
+    const onRetry = useCallback(() => {
+        dispatch(fetchProductsRequested())
+    }, [dispatch])
 
 
     if (status === 'succeeded') {
@@ -41,7 +46,7 @@ const Products = () => {
     }
 
     if (status === 'failed')
-        content = <div>{error}</div>
+        content = <SimpleErrorPage message={error ?? ""} onRetry={onRetry}></SimpleErrorPage >
 
     return <section className="product-section">{content}</section>
 

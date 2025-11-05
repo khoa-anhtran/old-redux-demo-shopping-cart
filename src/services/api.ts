@@ -1,7 +1,7 @@
 import store from "@/store/store";
 import axios, { AxiosError } from "axios";
 
-const api = axios.create({ baseURL: "/api" });
+const api = axios.create({ baseURL: "http://localhost:4000" });
 
 api.interceptors.request.use((config) => {
     const token = store.getState().auth.accessToken

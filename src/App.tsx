@@ -8,6 +8,7 @@ import RequireGuest from './routes/RequireGuest'
 import RequireAuth from './routes/RequireAuth'
 import { notification } from 'antd'
 import { ErrorBoundary } from 'react-error-boundary'
+import SimpleErrorPage from './pages/layout/SimpleErrorPage'
 
 const Products = lazy(() => import('./pages/products/Products'))
 const Header = lazy(() => import('./pages/layout/Header'))
@@ -66,6 +67,17 @@ function App() {
           <Route element={<RequireAuth />}>
             <Route path={ROUTES.HOME} element={<Home />} />
           </Route>
+          <Route
+            path="*"
+            element={
+              <SimpleErrorPage
+                status={404}
+                title="Page not found"
+                message="The page you're looking for doesn't exist."
+                homeHref="/"
+              />
+            }
+          />
         </Routes>
       </Suspense>
     </ErrorBoundary>

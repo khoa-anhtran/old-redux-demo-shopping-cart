@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
 import { userLogined } from "./actions"
 import { selectAuthError, selectAuthStatus } from "./selectors"
 import { notification } from "antd"
-import { error } from "console"
 
 export default function Login() {
 
