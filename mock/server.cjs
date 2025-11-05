@@ -2,6 +2,7 @@ const jsonServer = require('json-server')
 const path = require('node:path')
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { nanoid } = require('nanoid');
 
@@ -138,7 +139,7 @@ server.post('/auth/signin', (req, res) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: true,          // set true in HTTPS; for localhost you can set false while developing
-    sameSite: 'lax',       // or 'strict'
+    sameSite: 'none',       // or 'strict' | 'lax'
     path: '/auth/refresh',      // cookie sent only to refresh endpoint
     maxAge: 1000 * 60 * 60 * 24 * 30,
   });
@@ -195,10 +196,12 @@ server.post('/auth/logout', (req, res) => {
   res.status(204).end();
 });
 
-// auth routes
-server.use('/api/carts', authMiddleware);
-
-server.use('/api', router)
+server.use(cors({
+  origin: 'http://localhost:5173', // no "*"
+  credentials: true,                 // allow cookies/Authorization
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 server.use((req, res, next) => {
   const delay = 300 + Math.random() * 1200; // 300–1500ms
@@ -208,6 +211,11 @@ server.use((req, res, next) => {
     next();
   }, delay);
 });
+
+// auth routes
+server.use('/api/carts', authMiddleware);
+
+server.use('/api', router)
 
 const PORT = process.env.PORT || 4000
 server.listen(PORT, () => {

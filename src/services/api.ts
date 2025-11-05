@@ -6,6 +6,8 @@ const api = axios.create({ baseURL: "http://localhost:4000" });
 api.interceptors.request.use((config) => {
     const token = store.getState().auth.accessToken
 
+    config.withCredentials = true
+
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });
