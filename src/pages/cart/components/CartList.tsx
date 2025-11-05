@@ -3,6 +3,7 @@ import { CartItem as CartItemType } from "../reducers"
 import CartItem from "./CartItem";
 import { notification } from "antd";
 import { useEffect } from "react";
+import React from "react";
 
 type CartListProps = {
     cartItems: CartItemType[];
@@ -13,7 +14,7 @@ type CartListProps = {
     onSelectItem: (id: number) => void;
 }
 
-export default function CartList({ cartItems, onDecrease, onIncrease, onRemoveCartItems, onSelectItem, products }: CartListProps) {
+const CartList = ({ cartItems, onDecrease, onIncrease, onRemoveCartItems, onSelectItem, products }: CartListProps) => {
     const missing = cartItems.filter(i => !products[i.id]).map(i => i.id);
 
     useEffect(() => {
@@ -36,3 +37,5 @@ export default function CartList({ cartItems, onDecrease, onIncrease, onRemoveCa
         );
     })}</div>
 }
+
+export default React.memo(CartList)

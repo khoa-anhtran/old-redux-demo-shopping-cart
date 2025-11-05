@@ -1,30 +1,32 @@
+import React from "react";
+
 type CartActionsProps = {
-    isDisabled: boolean;
+    isCartEmpty: boolean;
+    hasSelectedItem: boolean;
     isSelectAll: boolean;
-    selectedItems: number[];
     onSelectAllItems: () => void;
-    onRemoveCartItems: (selectedItems: number[]) => void
+    onRemoveCartItems: () => void
     onRefresh: () => void;
 }
 
-export default function CartActions({ isDisabled, isSelectAll, selectedItems, onRemoveCartItems, onSelectAllItems, onRefresh }: CartActionsProps) {
+const CartActions = ({isCartEmpty, hasSelectedItem, isSelectAll, onRemoveCartItems, onSelectAllItems, onRefresh }: CartActionsProps) => {
     return <div className="cart-actions">
         <div className="cart-actions__inp">
             <input
                 type="checkbox"
                 id="selectAllItems"
                 aria-label="select all items"
-                disabled={isDisabled}
+                disabled={isCartEmpty}
                 checked={isSelectAll}
                 onChange={onSelectAllItems} />
             <label htmlFor="selectAllItems">Select All</label>
         </div>
         <div className="cart-actions__btns">
             <button
-                className={`remove-all-btn ${selectedItems.length === 0 ? "is-disabled" : ""}`}
+                className={`remove-all-btn ${!hasSelectedItem ? "is-disabled" : ""}`}
                 aria-label="remove all button"
-                disabled={selectedItems.length === 0}
-                onClick={() => onRemoveCartItems(selectedItems)}
+                disabled={!hasSelectedItem}
+                onClick={onRemoveCartItems}
             >Remove All</button>
 
             <button
@@ -38,3 +40,5 @@ export default function CartActions({ isDisabled, isSelectAll, selectedItems, on
         </div>
     </div>
 }
+
+export default React.memo(CartActions);

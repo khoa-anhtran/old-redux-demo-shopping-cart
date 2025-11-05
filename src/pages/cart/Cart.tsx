@@ -198,10 +198,10 @@ const Cart = () => {
 
             <div className="cart-modal__body">
                 <CartActions
-                    isDisabled={cartItems.length === 0}
+                    isCartEmpty={cartItems.length === 0}
                     isSelectAll={isSelectAll}
-                    selectedItems={selectedItems}
-                    onRemoveCartItems={onRemoveCartItems}
+                    hasSelectedItem={selectedItems.length === 0}
+                    onRemoveCartItems={() => onRemoveCartItems(selectedItems)}
                     onSelectAllItems={onSelectAllItems}
                     onRefresh={onRefresh}
                 />

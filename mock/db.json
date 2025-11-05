@@ -226,10 +226,6 @@
           "quantity": 10,
           "addedAt": "2025-11-05T07:54:53.220Z"
         },
-        "3": {
-          "quantity": 1,
-          "addedAt": "2025-11-05T07:54:50.590Z"
-        },
         "4": {
           "quantity": 1,
           "addedAt": "2025-11-05T07:54:13.662Z"
@@ -240,7 +236,7 @@
     {
       "items": {
         "3": {
-          "quantity": 1,
+          "quantity": 6,
           "addedAt": "2025-11-05T08:07:16.950Z"
         },
         "4": {
@@ -273,5 +269,12 @@
       "password": "$2b$10$VRSMGydOkXWOCzijbqDYiOMqUVaWuZJp0FenwpI2cq0Jc1du4vzUi"
     }
   ],
-  "refreshTokens": []
+  "refreshTokens": [
+    {
+      "id": "FmqnSAddlLpONikRH71V8",
+      "jti": "FmqnSAddlLpONikRH71V8",
+      "userId": 3,
+      "revoked": false
+    }
+  ]
 }

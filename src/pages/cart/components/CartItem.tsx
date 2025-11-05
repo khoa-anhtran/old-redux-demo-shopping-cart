@@ -1,4 +1,5 @@
 import { Product } from "@/pages/products/reducers";
+import React from "react";
 
 type CartItemProps = {
     product: Product;
@@ -56,4 +57,4 @@ const CartItem = ({ product, onDecrease, onIncrease, onRemoveCartItem, quantity,
     </article>
 }
 
-export default CartItem
+export default React.memo(CartItem)
