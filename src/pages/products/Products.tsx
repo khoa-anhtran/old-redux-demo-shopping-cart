@@ -7,6 +7,7 @@ import { fetchProductsRequested } from "./actions"
 import { notification } from "antd";
 import SimpleErrorPage from "../layout/SimpleErrorPage"
 import LoadingSpinner from "@/components/LoadingSpinner"
+import { notify } from "@/utils/helpers"
 
 const Products = () => {
     const dispatch = useDispatch()
@@ -23,18 +24,12 @@ const Products = () => {
             dispatch(fetchProductsRequested())
             isFetching.current = true
         }
-
-        if (status === "failed")
-            notification.error({
-                message: error,
-            });
+        notify(status, error, "Fetch products successfully")
     }, [status])
 
     const onAddToCart = useCallback((productId: number) => {
         dispatch(itemAdded(productId))
-        notification.success({
-            message: 'Your product have added',
-        });
+        notify("succeeded", error, 'Your product have added')
     }, [dispatch])
 
     const onRetry = useCallback(() => {
@@ -42,19 +37,16 @@ const Products = () => {
     }, [dispatch])
 
 
-    if (status === 'succeeded') {
+    if (status === 'succeeded')
         content = <ProductGrid products={products} onAddToCart={onAddToCart} />
-    }
 
     if (status === 'failed')
         content = <SimpleErrorPage message={error ?? ""} onRetry={onRetry}></SimpleErrorPage >
 
-    if (status === "loading") {
+    if (status === "loading")
         content = <LoadingSpinner overlay label="Loading page" size={"lg"} />
-    }
 
     return <section className="product-section">{content}</section>
-
 }
 
 export default Products

@@ -4,8 +4,7 @@ import { selectProducts } from "../products/selectors"
 import { useDispatch } from "react-redux"
 import { selectCart, selectCartError, selectCartIsSelectAll, selectCartOpen, selectCartStatus, selectCartSyncError, selectCartSyncStatus } from "./selectors"
 import { cartToggled, checkedOut, fetchCartRequested, itemsRemoved, itemSelectedToggled, quantityDecreased, quantityIncreased, selectAllToggled } from "./actions"
-import CartItem from "./components/CartItem"
-import { roundTo } from "@/utils/helpers"
+import { notify, roundTo } from "@/utils/helpers"
 import { Modal, notification } from "antd"
 import { selectAuth } from "../auth/selectors"
 import LoadingSpinner from "@/components/LoadingSpinner"
@@ -26,9 +25,7 @@ const Cart = () => {
 
     const cartItems = useSelector(selectCart)
     const isSelectAll = useSelector(selectCartIsSelectAll)
-    const { userId, accessToken } = useSelector(selectAuth)
-
-    // const { data: products, isFetching, error, isError } = useGetProductsQuery()
+    const { userId } = useSelector(selectAuth)
 
     const products = useSelector(selectProducts)
 
@@ -61,29 +58,17 @@ const Cart = () => {
     const isFetchingCart = useRef(false)
 
     useEffect(() => {
+        notify(status, error, "Fetch cart successfully")
+
         if (status === "idle" && !isFetchingCart.current) {
             isFetchingCart.current = true
             dispatch(fetchCartRequested())
         }
 
-        if (status === "succeeded") {
-            notification.success({ message: "Fetch cart successfully" })
-            isFetchingCart.current = false
-        }
-
-        if (status === "failed") {
-            notification.error({ message: error })
-            isFetchingCart.current = false
-        }
-
     }, [status, userId, dispatch])
 
     useEffect(() => {
-        if (syncStatus === "succeeded")
-            notification.success({ message: "Sync cart successfully" })
-
-        if (syncStatus === "failed")
-            notification.error({ message: syncError })
+        notify(syncStatus, syncError, "Sync cart successfully")
     }, [syncStatus, dispatch])
 
     // lock scroll & manage focus
@@ -175,15 +160,13 @@ const Cart = () => {
 
     let content
 
-    if (status === "loading") {
+    if (status === "loading")
         content = <div style={{ textAlign: "center", marginTop: "12px" }}><LoadingSpinner label="Loading data" size={"lg"}></LoadingSpinner></div>
-    }
 
-    if (status === "failed") {
+    if (status === "failed")
         content = <div>{error}</div>
-    }
 
-    if (status === "succeeded" && Object.keys(products).length != 0) {
+    if (status === "succeeded" && Object.keys(products).length !== 0) {
 
         if (cartItems.length === 0)
             content = <p className="empty">Cart is empty</p>

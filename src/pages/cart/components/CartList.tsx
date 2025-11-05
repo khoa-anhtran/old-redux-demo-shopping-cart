@@ -2,6 +2,7 @@ import { Product } from "@/pages/products/reducers"
 import { CartItem as CartItemType } from "../reducers"
 import CartItem from "./CartItem";
 import { notification } from "antd";
+import { useEffect } from "react";
 
 type CartListProps = {
     cartItems: CartItemType[];
@@ -13,23 +14,25 @@ type CartListProps = {
 }
 
 export default function CartList({ cartItems, onDecrease, onIncrease, onRemoveCartItems, onSelectItem, products }: CartListProps) {
-    return <div className="cart-items">{cartItems.map(item => {
-        const product = products[item.id]
+    const missing = cartItems.filter(i => !products[i.id]).map(i => i.id);
 
-        if (!product) {
-            notification.error({ message: "Some products no longer exist" })
-            return null
-        }
+    useEffect(() => {
+        if (missing.length) notification.error({ message: "Some products no longer exist" });
+    }, [missing.length]);
 
-        return <CartItem
-            key={product.id}
-            product={product}
-            onRemoveCartItem={(id) => onRemoveCartItems([id])}
-            onDecrease={onDecrease}
-            onIncrease={onIncrease}
-            onSelectItem={onSelectItem}
-            quantity={item.quantity}
-            isSelected={item.isSelected}
-        />
+    return <div className="cart-items"> {cartItems.filter(i => products[i.id]).map(item => {
+        const product = products[item.id]!;
+        return (
+            <CartItem
+                key={product.id}
+                product={product}
+                onRemoveCartItem={(id) => onRemoveCartItems([id])}
+                onDecrease={onDecrease}
+                onIncrease={onIncrease}
+                onSelectItem={onSelectItem}
+                quantity={item.quantity}
+                isSelected={item.isSelected}
+            />
+        );
     })}</div>
 }
