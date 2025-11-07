@@ -197,7 +197,7 @@ server.post('/auth/logout', (req, res) => {
 });
 
 server.use(cors({
-  origin: 'http://localhost:5173', // no "*"
+  origin: ['http://localhost:4173', 'http://localhost:5173'], // no "*"
   credentials: true,                 // allow cookies/Authorization
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

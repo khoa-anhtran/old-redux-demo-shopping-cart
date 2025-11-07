@@ -2,14 +2,15 @@ import { useDispatch, useSelector } from 'react-redux'
 import './App.css'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef } from 'react'
-import { selectAuthRTStatus, selectAuthStatus } from './pages/auth/selectors'
-import { accessTokenRefreshRequested, userLogoutRequested } from './pages/auth/actions'
+import { selectAuthError, selectAuthRTStatus, selectAuthStatus } from './pages/auth/selectors'
+import { accessTokenRefreshRequested, userLogoutRequested, userLogoutSucceeded } from './pages/auth/actions'
 import RequireGuest from './routes/RequireGuest'
 import RequireAuth from './routes/RequireAuth'
 import { ErrorBoundary } from 'react-error-boundary'
 import SimpleErrorPage from './pages/layout/SimpleErrorPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import { notify } from './utils/helpers'
+import { USER_LOGOUT_SUCCEEDED } from './pages/auth/actionTypes'
 
 const Products = lazy(() => import('./pages/products/Products'))
 const Header = lazy(() => import('./pages/layout/Header'))
@@ -36,8 +37,8 @@ function App() {
   const kicked = useRef(false);
 
   const status = useSelector(selectAuthStatus);
+  const error = useSelector(selectAuthError);
   const rts = useSelector(selectAuthRTStatus)
-
 
   // Kick off refresh exactly once when app starts idle
   useEffect(() => {
@@ -45,15 +46,21 @@ function App() {
       dispatch(accessTokenRefreshRequested());
       kicked.current = true;
     }
-  }, [status, dispatch]);
+
+    if (status === "failed") {
+      dispatch(userLogoutSucceeded())
+      navigate(ROUTES.HOME)
+      notify({ status, error })
+    }
+  }, [status, dispatch, error]);
 
   useEffect(() => {
-    if (rts === "expired") {
+    if (rts === "expired" && status !== "failed") {
       notify({ status: "failed", error: "Your session is expired, please login again" })
       dispatch(userLogoutRequested())
       navigate(ROUTES.HOME)
     }
-  }, [rts, dispatch, navigate])
+  }, [rts, dispatch, navigate, status])
 
   if (status === "loading")
     return <LoadingSpinner overlay size={'lg'} label='Loading'></LoadingSpinner>

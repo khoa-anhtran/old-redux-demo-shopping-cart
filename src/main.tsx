@@ -17,3 +17,5 @@ createRoot(document.getElementById('root')!).render(
     </Provider>
   </StrictMode>,
 )
+
+console.log("React root rendered");
