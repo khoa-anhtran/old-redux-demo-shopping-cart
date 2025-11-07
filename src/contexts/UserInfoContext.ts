@@ -4,8 +4,8 @@ import { createContext } from "react";
 export type UserInfoCtx = {
     userId: null | number,
     email: null | string,
-    loginAction: (payload: AuthPayload) => Promise<void>,
-    registerAction: (payload: AuthPayload) => Promise<void>,
+    loginAction: (payload: AuthPayload) => Promise<void | string>,
+    registerAction: (payload: AuthPayload) => Promise<void | string>,
     refreshAction: () => Promise<void>
     logOut: () => Promise<void>
 }

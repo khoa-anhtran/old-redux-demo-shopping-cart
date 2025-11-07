@@ -5,7 +5,8 @@ import { useState, ReactNode, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "./UserInfoContext";
 import { useDispatch } from "react-redux";
-import { tokenRemoved } from "@/pages/auth/actions";
+import { tokenAdded, tokenRemoved } from "@/pages/auth/actions";
+import store from "@/store/store";
 
 const UserInfoProvider = ({ children }: { children: ReactNode }) => {
     const dispatch = useDispatch()
@@ -24,6 +25,7 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
                 setEmail(email)
                 notify({ status: "succeeded", message: "Register successfully" })
                 navigate("/");
+                store.dispatch(tokenAdded(data.accessToken))
 
                 return;
             }
@@ -33,22 +35,20 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
 
             notify({ status: "failed", error })
 
-            return;
+            return error
         }
     }, [navigate])
 
     const loginAction = useCallback(async (authPayload: AuthPayload) => {
         try {
-            console.log(authPayload)
             const data = await postLogin(authPayload)
-            console.log(data)
-
 
             if (data) {
                 const { email, id } = data.user
                 setUserId(id);
                 setEmail(email)
                 notify({ status: "succeeded", message: "Login successfully" })
+                store.dispatch(tokenAdded(data.accessToken))
                 navigate("/");
                 return;
             }
@@ -58,7 +58,7 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
 
             notify({ status: "failed", error })
 
-            throw error;
+            return error
         }
     }, [navigate])
 
@@ -84,6 +84,7 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
                 const { email, id } = data.user
                 setUserId(id);
                 setEmail(email)
+                store.dispatch(tokenAdded(data.accessToken))
                 return;
             }
 

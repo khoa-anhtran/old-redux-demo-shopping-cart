@@ -1,5 +1,5 @@
 import useUserInfo from "@/hooks/useUserInfo"
-import { useCallback, useState } from "react"
+import { useCallback, useState, useTransition } from "react"
 import { Link } from "react-router-dom"
 
 export default function Register() {
@@ -7,19 +7,18 @@ export default function Register() {
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [isLoading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    const [isLoading, startTransition] = useTransition()
 
     const onRegister = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
-        try {
-            setLoading(true)
-            await registerAction({ email, password })
-            setLoading(false)
-        }
-        catch (err) {
-            setError(error)
-        }
+
+        startTransition(async () => {
+            const err = await registerAction({ email, password })
+            if (err)
+                setError(err)
+        })
     }, [email, password, registerAction])
 
     return (

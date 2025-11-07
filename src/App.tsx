@@ -1,6 +1,6 @@
 import './App.css'
 import { Route, Routes, useNavigate } from 'react-router-dom'
-import { lazy, Suspense, useEffect, useEffectEvent, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useRef, useTransition } from 'react'
 import RequireGuest from './routes/RequireGuest'
 import RequireAuth from './routes/RequireAuth'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -33,21 +33,25 @@ const ErrorFallback = ({ error }: { error: Error }) => (
 function App() {
   const navigate = useNavigate()
   const kicked = useRef(false);
-
   const token = useSelector(selectToken)
+
+  const [isLoading, startTransition] = useTransition()
+
 
   const { refreshAction, logOut } = useUserInfo()
 
-  const onRefresh = useEffectEvent(async () => {
-    try {
-      await refreshAction()
-      notify({ status: "succeeded", message: "Refresh successfully" })
-      navigate("/");
-    }
-    catch (err) {
-      console.error(err)
-    }
-  })
+  const onRefresh = useCallback(async () => {
+    startTransition(async () => {
+      try {
+        await refreshAction()
+        notify({ status: "succeeded", message: "Refresh successfully" })
+        navigate("/");
+      }
+      catch (err) {
+        console.error(err)
+      }
+    })
+  }, [navigate, refreshAction])
 
   // Kick off refresh exactly once when app starts idle
   useEffect(() => {
@@ -58,38 +62,18 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!token) {
-      logOut().then(() => {
-        notify({ status: "failed", message: "Your session is expired, please login again" })
-      })
+    if (!kicked.current) {
+      console.log(token)
+      if (!token) {
+        logOut().then(() => {
+          notify({ status: "failed", message: "Your session is expired, please login again" })
+        })
+      }
     }
   }, [token])
 
-
-
-  // useEffect(() => {
-  //   if (status === "idle" && !kicked.current) {
-  //     dispatch(accessTokenRefreshRequested());
-  //     kicked.current = true;
-  //   }
-
-  //   if (status === "failed") {
-  //     dispatch(userLogoutSucceeded())
-  //     navigate(ROUTES.HOME)
-  //     notify({ status, error })
-  //   }
-  // }, [status, dispatch, error]);
-
-  // useEffect(() => {
-  //   if (rts === "expired" && status !== "failed") {
-  //     notify({ status: "failed", error: "Your session is expired, please login again" })
-  //     dispatch(userLogoutRequested())
-  //     navigate(ROUTES.HOME)
-  //   }
-  // }, [rts, dispatch, navigate, status])
-
-  // if (status === "loading")
-  //   return <LoadingSpinner overlay size={'lg'} label='Loading'></LoadingSpinner>
+  if (isLoading)
+    return <LoadingSpinner overlay size={'lg'} label='Loading'></LoadingSpinner>
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
