@@ -1,4 +1,4 @@
-import { tokenAdded } from "@/pages/auth/actions";
+import { tokenAdded, tokenRemoved } from "@/pages/auth/actions";
 import store from "@/store/store";
 import axios, { AxiosError } from "axios";
 
@@ -34,6 +34,7 @@ api.interceptors.response.use(
                 .finally(() => { refreshing = null; });
 
             const newToken = await refreshing;
+
             if (newToken) {
                 original.headers.Authorization = `Bearer ${newToken}`;
                 return api.request(original);
@@ -41,6 +42,8 @@ api.interceptors.response.use(
         }
 
         const data = err.response?.data as { message: string }
+
+        store.dispatch(tokenRemoved())
 
         throw new Error(data.message ?? err.message);
     }

@@ -20,7 +20,7 @@ export type AuthPayload = {
 
 const initialState: AuthState = {}
 
-type AuthPayloadAction = PayloadAction<{ token: string }>
+type AuthPayloadAction = PayloadAction<{ token?: string }>
 
 const authReducer = (state = initialState, action: AuthPayloadAction): AuthState => {
     switch (action.type) {

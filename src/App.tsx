@@ -7,7 +7,9 @@ import { ErrorBoundary } from 'react-error-boundary'
 import SimpleErrorPage from './pages/layout/SimpleErrorPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import { notify } from './utils/helpers'
-import useAuth from './hooks/useUserInfo'
+import useUserInfo from './hooks/useUserInfo'
+import { useSelector } from 'react-redux'
+import { selectToken } from './pages/auth/selectors'
 
 const Products = lazy(() => import('./pages/products/Products'))
 const Header = lazy(() => import('./pages/layout/Header'))
@@ -32,7 +34,9 @@ function App() {
   const navigate = useNavigate()
   const kicked = useRef(false);
 
-  const { refreshAction } = useAuth()
+  const token = useSelector(selectToken)
+
+  const { refreshAction, logOut } = useUserInfo()
 
   const onRefresh = useEffectEvent(async () => {
     try {
@@ -52,6 +56,16 @@ function App() {
       kicked.current = true
     }
   }, [])
+
+  useEffect(() => {
+    if (!token) {
+      logOut().then(() => {
+        notify({ status: "failed", message: "Your session is expired, please login again" })
+      })
+    }
+  }, [token])
+
+
 
   // useEffect(() => {
   //   if (status === "idle" && !kicked.current) {
