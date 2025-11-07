@@ -6,11 +6,11 @@ import { selectCart, selectCartError, selectCartIsSelectAll, selectCartOpen, sel
 import { cartToggled, checkedOut, fetchCartRequested, itemsRemoved, itemSelectedToggled, quantityDecreased, quantityIncreased, selectAllToggled } from "./actions"
 import { notify, roundTo } from "@/utils/helpers"
 import { Modal, notification } from "antd"
-import { selectAuth } from "../auth/selectors"
 import LoadingSpinner from "@/components/LoadingSpinner"
 import CartHeader from "./components/CartHeader"
 import CartActions from "./components/CartActions"
 import CartList from "./components/CartList"
+import useUserInfo from "@/hooks/useUserInfo"
 
 
 const Cart = () => {
@@ -25,7 +25,8 @@ const Cart = () => {
 
     const cartItems = useSelector(selectCart)
     const isSelectAll = useSelector(selectCartIsSelectAll)
-    const { userId } = useSelector(selectAuth)
+
+    const { userId } = useUserInfo()
 
     const products = useSelector(selectProducts)
 
@@ -57,8 +58,13 @@ const Cart = () => {
     const modalRef = useRef<HTMLDivElement>(null);
     const isFetchingCart = useRef(false)
 
+    if (!userId) {
+        notify({ status: "failed", error: "UserId is not existed" })
+        return
+    }
+
     const onIncrease = useCallback((itemId: number) => {
-        dispatch(quantityIncreased(itemId))
+        dispatch(quantityIncreased(itemId, userId))
     }, [dispatch])
 
     const onDecrease = useCallback(async (itemId: number, currentQty: number) => {
@@ -68,12 +74,12 @@ const Cart = () => {
                 title: "Confirm Remove Item",
                 content: 'This cannot be undone.',
                 onOk: () => {
-                    dispatch(quantityDecreased(itemId))
+                    dispatch(quantityDecreased(itemId, userId))
                     notification.success({ message: "Remove successfully" })
                 }
             })
         } else
-            dispatch(quantityDecreased(itemId))
+            dispatch(quantityDecreased(itemId, userId))
 
     }, [dispatch])
 
@@ -92,7 +98,7 @@ const Cart = () => {
     const onCheckout = useCallback(async () => {
         Modal.confirm({
             title: "Confirm Checkout", content: 'This cannot be undone.', onOk: () => {
-                dispatch(checkedOut(selectedItems))
+                dispatch(checkedOut(selectedItems, userId))
 
                 notification.success({ message: 'Checkout successfully' })
             }
@@ -104,7 +110,7 @@ const Cart = () => {
             title: "Confirm Remove Item",
             content: 'This cannot be undone.',
             onOk: () => {
-                dispatch(itemsRemoved(itemIds))
+                dispatch(itemsRemoved(itemIds, userId))
                 notification.success({ message: "Remove successfully" })
             }
         })
@@ -112,7 +118,7 @@ const Cart = () => {
 
     const onRefresh = useCallback(() => {
         isFetchingCart.current = true
-        dispatch(fetchCartRequested())
+        dispatch(fetchCartRequested(userId))
     }, [dispatch])
 
     useEffect(() => {
@@ -120,7 +126,7 @@ const Cart = () => {
 
         if (status === "idle" && !isFetchingCart.current) {
             isFetchingCart.current = true
-            dispatch(fetchCartRequested())
+            dispatch(fetchCartRequested(userId))
         }
 
     }, [status, userId, dispatch, error])
@@ -200,7 +206,7 @@ const Cart = () => {
                 <CartActions
                     isCartEmpty={cartItems.length === 0}
                     isSelectAll={isSelectAll}
-                    hasSelectedItem={selectedItems.length === 0}
+                    hasSelectedItem={selectedItems.length !== 0}
                     onRemoveCartItems={() => onRemoveCartItems(selectedItems)}
                     onSelectAllItems={onSelectAllItems}
                     onRefresh={onRefresh}

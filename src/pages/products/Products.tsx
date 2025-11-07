@@ -7,6 +7,7 @@ import { fetchProductsRequested } from "./actions"
 import SimpleErrorPage from "../layout/SimpleErrorPage"
 import LoadingSpinner from "@/components/LoadingSpinner"
 import { notify } from "@/utils/helpers"
+import useUserInfo from "@/hooks/useUserInfo"
 
 const Products = () => {
     const dispatch = useDispatch()
@@ -14,9 +15,16 @@ const Products = () => {
     const error = useSelector(selectProductsError)
     const products = useSelector(selectProducts)
 
+    const { userId } = useUserInfo()
+
     const isFetching = useRef(false)
 
     let content
+
+    if (!userId) {
+        notify({ status: "failed", message: "UserId is not existed" })
+        return
+    }
 
     useEffect(() => {
         if (status === 'idle' && !isFetching.current) {
@@ -27,7 +35,7 @@ const Products = () => {
     }, [status, error, dispatch])
 
     const onAddToCart = useCallback((productId: number) => {
-        dispatch(itemAdded(productId))
+        dispatch(itemAdded(productId, userId))
         notify({ status: "succeeded", error, message: 'Your product have added' })
     }, [dispatch, error])
 

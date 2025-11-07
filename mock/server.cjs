@@ -8,8 +8,8 @@ const { nanoid } = require('nanoid');
 
 const SECRET = 'dev_secret_change_me';
 const JWT_REFRESH_SECRET = 'refresh_secret_change_me';
-const ACCESS_TTL = '10m';
-const REFRESH_TTL = '30d';
+const ACCESS_TTL = '10s';
+const REFRESH_TTL = '10s';
 
 const server = jsonServer.create()
 const router = jsonServer.router(path.join(__dirname, 'db.json'))

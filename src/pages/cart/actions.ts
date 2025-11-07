@@ -1,8 +1,9 @@
 import { CART_FETCH_FAILED, CART_FETCH_REQUESTED, CART_FETCH_SUCCEEDED, CART_TOGGLE, CHECKED_OUT, ITEM_ADDED, ITEMS_REMOVED, ITEM_SELECTED_TOGGLED, QUANTITY_DECREASED, QUANTITY_INCREASED, SELECT_ALL_TOGGLED, CART_SYNC_SUCCEEDED, CART_SYNC_FAILED } from "./actionTypes";
 import { CartItem } from "./reducers";
 
-export const fetchCartRequested = () => ({
-    type: CART_FETCH_REQUESTED
+export const fetchCartRequested = (userId: number) => ({
+    type: CART_FETCH_REQUESTED,
+    payload: { userId }
 });
 
 export const fetchCartSucceeded = (items: CartItem[]) => ({
@@ -30,17 +31,19 @@ export const cartSyncFailed = (message: string) => ({
     }
 });
 
-export const itemAdded = (itemId: number) => ({
+export const itemAdded = (itemId: number, userId: number) => ({
     type: ITEM_ADDED,
     payload: {
-        itemId
+        itemId,
+        userId
     }
 });
 
-export const itemsRemoved = (itemIds: number[]) => ({
+export const itemsRemoved = (itemIds: number[], userId: number) => ({
     type: ITEMS_REMOVED,
     payload: {
-        itemIds
+        itemIds,
+        userId
     }
 });
 
@@ -48,17 +51,19 @@ export const cartToggled = () => ({
     type: CART_TOGGLE,
 });
 
-export const quantityIncreased = (itemId: number) => ({
+export const quantityIncreased = (itemId: number, userId: number) => ({
     type: QUANTITY_INCREASED,
     payload: {
-        itemId
+        itemId,
+        userId
     }
 });
 
-export const quantityDecreased = (itemId: number) => ({
+export const quantityDecreased = (itemId: number, userId: number) => ({
     type: QUANTITY_DECREASED,
     payload: {
-        itemId
+        itemId,
+        userId
     }
 });
 
@@ -77,11 +82,12 @@ export const selectAllToggled = () => (
     }
 )
 
-export const checkedOut = (itemIds: number[]) => (
+export const checkedOut = (itemIds: number[], userId: number) => (
     {
         type: CHECKED_OUT,
         payload: {
-            itemIds
+            itemIds,
+            userId
         }
     }
 )

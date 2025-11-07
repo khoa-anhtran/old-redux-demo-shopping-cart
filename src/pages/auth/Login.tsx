@@ -1,39 +1,26 @@
-import { useCallback, useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { Link, useNavigate } from "react-router-dom"
-import { userLogined } from "./actions"
-import { selectAuthError, selectAuthStatus } from "./selectors"
-import { notification } from "antd"
+import useUserInfo from "@/hooks/useUserInfo"
+import { useCallback, useState } from "react"
+import { Link } from "react-router-dom"
 
 export default function Login() {
-
-    const authStatus = useSelector(selectAuthStatus)
-    const authError = useSelector(selectAuthError)
+    const { loginAction } = useUserInfo()
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [isLoading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
-
-    const onLogin = useCallback((e: React.FormEvent) => {
+    const onLogin = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
-        dispatch(userLogined({ email, password }))
-    }, [dispatch, email, password])
-
-    useEffect(() => {
-        if (authStatus === 'succeeded') {
-            notification.success({
-                message: "Login successfully",
-            })
-            navigate('/')
+        try {
+            setLoading(true)
+            await loginAction({ email, password })
+            setLoading(false)
         }
-
-        if (authStatus === "failed")
-            notification.error({
-                message: authError,
-            })
-    }, [authStatus, authError, navigate])
+        catch (err) {
+            setError(error)
+        }
+    }, [email, password, loginAction])
 
     return (
         <div className="login">
@@ -60,13 +47,13 @@ export default function Login() {
                     <button
                         type="submit"
                         className="login__submit"
-                        disabled={authStatus === 'loading'}
+                        disabled={isLoading}
                     >
-                        {authStatus === 'loading' ? 'Signing in…' : 'Sign in'}
+                        {isLoading ? 'Signing in…' : 'Sign in'}
                     </button>
                 </form>
 
-                <div style={{ color: 'red' }}>{authStatus === "failed" ? authError : ""}</div>
+                <div style={{ color: 'red' }}>{error != null && error}</div>
 
                 <p className="login__hint">
                     Don't have an account? <Link to={"/signup"}>Sign up</Link>
