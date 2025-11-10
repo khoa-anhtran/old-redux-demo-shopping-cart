@@ -1,16 +1,17 @@
-import { FetchStatus, PayloadAction } from "@/types";
+import { PayloadAction } from "@/types";
 import {
     ACCESS_TOKEN_REFRESH_FAILED,
     ACCESS_TOKEN_REFRESH_REQUESTED, ACCESS_TOKEN_REFRESHED, USER_LOGIN_FAILED,
     USER_LOGIN_SUCCEEDED, USER_LOGINED, USER_LOGOUT_FAILED, USER_LOGOUT_REQUESTED, USER_LOGOUT_SUCCEEDED, USER_REGISTER_FAILED,
     USER_REGISTER_SUCCEEDED, USER_REGISTERED
 } from "./actionTypes";
+import { STATUS } from "@/constants/api";
 
 export type AuthState = {
     userId: number | null;
     email: string | null;
-    accessToken?: string
-    status: FetchStatus
+    accessToken?: string;
+    status: string;
     error: string | null;
     refreshTokenStatus: "empty" | "existed" | "expired"
 }
@@ -31,7 +32,7 @@ export type AuthPayload = {
 const initialState: AuthState = {
     userId: null,
     email: null,
-    status: 'idle',
+    status: STATUS.FAIL,
     error: null,
     refreshTokenStatus: "empty"
 }
@@ -47,7 +48,7 @@ const authReducer = (state = initialState, action: AuthPayloadAction): AuthState
         case ACCESS_TOKEN_REFRESH_REQUESTED: {
             return {
                 ...state,
-                status: 'loading'
+                status: STATUS.LOADING
             };
         }
 
@@ -58,7 +59,7 @@ const authReducer = (state = initialState, action: AuthPayloadAction): AuthState
 
             return {
                 ...state,
-                status: "failed",
+                status: STATUS.FAIL,
                 error: message
             };
         }
@@ -73,7 +74,7 @@ const authReducer = (state = initialState, action: AuthPayloadAction): AuthState
                 accessToken,
                 email: user.email,
                 userId: user.id,
-                status: "succeeded"
+                status: STATUS.SUCCESS
             };
         }
 
@@ -82,7 +83,7 @@ const authReducer = (state = initialState, action: AuthPayloadAction): AuthState
 
             const isEmpty = !!message.match(/Missing refresh token/)
 
-            return { ...state, status: "idle", refreshTokenStatus: isEmpty ? "empty" : "expired" };
+            return { ...state, status: STATUS.IDLE, refreshTokenStatus: isEmpty ? "empty" : "expired" };
         }
 
         case USER_LOGOUT_SUCCEEDED: {

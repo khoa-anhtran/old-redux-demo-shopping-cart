@@ -26,7 +26,6 @@ const SimpleErrorPage: React.FC<SimpleErrorPageProps> = ({
     return (
         <main className="error-page" aria-live="polite">
             <section className="error-page__card" role="group" aria-label="Error information">
-                {/* <div className="error-page__badge" aria-hidden="true">{status}</div> */}
                 <h1 className="error-page__title">{resolvedTitle}</h1>
                 <p className="error-page__message">{resolvedMsg}</p>
                 <div className="error-page__actions">

@@ -1,5 +1,6 @@
 import { FetchStatus, PayloadAction } from "@/types"
 import { PRODUCTS_FETCH_FAILED, PRODUCTS_FETCH_REQUESTED, PRODUCTS_FETCH_SUCCEEDED } from "./actionTypes"
+import { STATUS } from "@/constants/api"
 
 export type Product = {
     id: number,
@@ -10,13 +11,13 @@ export type Product = {
 
 export type ProductState = {
     products: Record<number, Product>,
-    status: FetchStatus,
+    status: string,
     error: string | null
 }
 
 const initialState: ProductState = {
     products: [],
-    status: 'idle',
+    status: STATUS.IDLE,
     error: null
 }
 
@@ -27,7 +28,7 @@ const productReducer = (state = initialState, action: ProductPayloadAction): Pro
         case PRODUCTS_FETCH_REQUESTED: {
             return {
                 ...state,
-                status: 'loading'
+                status: STATUS.LOADING
             };
         }
 
@@ -37,7 +38,7 @@ const productReducer = (state = initialState, action: ProductPayloadAction): Pro
             return {
                 ...state,
                 products: { ...state.products, ...products },
-                status: 'succeeded'
+                status: STATUS.SUCCESS
             };
         }
 
@@ -47,7 +48,7 @@ const productReducer = (state = initialState, action: ProductPayloadAction): Pro
             return {
                 ...state,
                 error: message,
-                status: 'failed'
+                status: STATUS.FAIL
             };
         }
 

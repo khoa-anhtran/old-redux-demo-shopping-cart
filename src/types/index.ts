@@ -1,8 +1,4 @@
 export type PayloadAction<T> = {
     type: string,
-    payload: T
+    payload?: T
 }
-
-export type FetchStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
-
-export type SyncStatus = 'waiting' | 'succeeded' | 'failed';

@@ -11,7 +11,7 @@ import { PayloadAction } from '@/types';
 function* loginSaga(action: PayloadAction<AuthPayload>): SagaIterator {
     try {
         const authPayload = action.payload;
-        const response: AuthResponse = yield call(postLogin, authPayload);
+        const response: AuthResponse = yield call(postLogin, authPayload!);
 
         yield put(userLoginSucceeded(response));
     } catch (e) {
@@ -24,7 +24,7 @@ function* loginSaga(action: PayloadAction<AuthPayload>): SagaIterator {
 function* registerSaga(action: PayloadAction<AuthPayload>): SagaIterator {
     try {
         const authPayload = action.payload;
-        const response: AuthResponse = yield call(postRegister, authPayload);
+        const response: AuthResponse = yield call(postRegister, authPayload!);
 
         yield put(userRegisterSucceeded(response));
     } catch (e) {

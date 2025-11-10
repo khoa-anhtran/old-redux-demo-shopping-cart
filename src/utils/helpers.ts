@@ -1,4 +1,4 @@
-import { FetchStatus, SyncStatus } from "@/types";
+import { STATUS } from "@/constants/api";
 import { notification } from "antd";
 import axios, { AxiosError } from "axios";
 
@@ -10,9 +10,7 @@ export function roundTo(n: number, decimals = 2): number {
 export const isAxiosError = <T = unknown>(e: unknown): e is AxiosError<T> =>
     axios.isAxiosError(e);
 
-type Status = FetchStatus | SyncStatus;
-
-export function notify({ duration = 2, status, error, message }: { status: Status, error?: string | null, message?: string | null, duration?: number }) {
-    if (status === "failed" && error) notification.error({ message: error, duration });
-    if (status === "succeeded" && message) notification.success({ message, duration });
+export function notify({ duration = 2, status, message }: { status: string, message?: string | null, duration?: number }) {
+    if (status === STATUS.FAIL) notification.error({ message, duration });
+    if (status === STATUS.SUCCESS) notification.success({ message, duration });
 }

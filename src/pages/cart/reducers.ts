@@ -1,6 +1,8 @@
-import { FetchStatus, PayloadAction, SyncStatus } from "@/types"
+import { PayloadAction } from "@/types"
 import { CART_FETCH_FAILED, CART_FETCH_REQUESTED, CART_FETCH_SUCCEEDED, CART_SYNC_FAILED, CART_SYNC_SUCCEEDED, CART_TOGGLE, CHECKED_OUT, ITEM_ADDED, ITEM_SELECTED_TOGGLED, ITEMS_REMOVED, QUANTITY_DECREASED, QUANTITY_INCREASED, SELECT_ALL_TOGGLED } from "./actionTypes"
 import { USER_LOGOUT_SUCCEEDED } from "../auth/actionTypes";
+import { STATUS } from "@/constants/api";
+import { notify } from "@/utils/helpers";
 
 export type CartItem = {
     id: number,
@@ -11,8 +13,8 @@ export type CartItem = {
 
 export type CartState = {
     items: CartItem[],
-    status: FetchStatus,
-    syncStatus: SyncStatus,
+    status: string,
+    syncStatus: string,
     error: string | null,
     syncError: string | null,
     isSelectAll: boolean;
@@ -21,11 +23,11 @@ export type CartState = {
 
 const initialState: CartState = {
     items: [],
-    status: 'idle',
+    status: STATUS.IDLE,
     error: null,
     isSelectAll: false,
     isOpen: false,
-    syncStatus: 'waiting',
+    syncStatus: STATUS.IDLE,
     syncError: null
 }
 
@@ -41,7 +43,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
         case CART_FETCH_REQUESTED: {
             return {
                 ...state,
-                status: 'loading'
+                status: STATUS.LOADING
             };
         }
 
@@ -54,7 +56,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
                 ...state,
                 items: myItems,
                 error: null,
-                status: 'succeeded'
+                status: STATUS.SUCCESS
             };
         }
 
@@ -64,7 +66,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
             return {
                 ...state,
                 error: message,
-                status: 'failed'
+                status: STATUS.FAIL
             };
         }
 
@@ -72,7 +74,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
             return {
                 ...state,
                 syncError: null,
-                syncStatus: 'succeeded'
+                syncStatus: STATUS.SUCCESS
             };
         }
 
@@ -81,7 +83,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
             return {
                 ...state,
                 syncError: message,
-                syncStatus: 'failed'
+                syncStatus: STATUS.FAIL
             };
         }
 
@@ -100,7 +102,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
             if (state.items.find(item => item.id === itemId))
                 return {
                     ...state,
-                    syncStatus: "waiting",
+                    syncStatus: STATUS.LOADING,
                     items: state.items.map(item => {
                         if (item.id === itemId)
                             return { ...item, quantity: item.quantity + 1 }
@@ -111,7 +113,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
 
             return {
                 ...state,
-                syncStatus: "waiting",
+                syncStatus: STATUS.LOADING,
                 items: [...state.items, newItem]
             };
         }
@@ -125,7 +127,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
 
             return {
                 ...state,
-                syncStatus: "waiting",
+                syncStatus: STATUS.LOADING,
                 items,
                 isSelectAll
             };
@@ -136,7 +138,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
 
             return {
                 ...state,
-                syncStatus: "waiting",
+                syncStatus: STATUS.LOADING,
                 items: state.items.map(item =>
                     item.id === itemId
                         ? { ...item, quantity: item.quantity + 1 }
@@ -152,13 +154,13 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
             if (item?.quantity === 1)
                 return {
                     ...state,
-                    syncStatus: "waiting",
+                    syncStatus: STATUS.LOADING,
                     items: state.items.filter(myItem => myItem.id !== item.id)
                 };
 
             return {
                 ...state,
-                syncStatus: "waiting",
+                syncStatus: STATUS.LOADING,
                 items: state.items.map(item =>
                     item.id === itemId
                         ? { ...item, quantity: item.quantity - 1 }
@@ -175,8 +177,8 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
 
             return {
                 ...state,
-                syncStatus: "waiting",
-                isSelectAll: !isCheckedOutAll,
+                syncStatus: STATUS.LOADING,
+                isSelectAll: isCheckedOutAll ? false : state.isSelectAll,
                 items: state.items.filter(item => !itemIds.includes(item.id))
             };
         }
