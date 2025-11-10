@@ -54,7 +54,6 @@ function* callApiWithRefresh<T>(
         if (!msg.match(/Invalid or expired token|401/)) throw e;
     }
 
-    // refresh then retry once
     const ok: boolean = yield call(refreshTokenSaga);
     if (!ok) throw new Error("Token refresh failed");
 
