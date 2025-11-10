@@ -9,6 +9,8 @@ export const postRefreshToken = async () => {
     } catch (err) {
         if (isAxiosError(err))
             throw new Error(err?.response?.data?.message);
+        else
+            throw err
     }
 }
 
@@ -19,6 +21,8 @@ export const postLogin = async (authPayload: AuthPayload) => {
     } catch (err) {
         if (isAxiosError(err))
             throw new Error(err?.response?.data?.message);
+        else
+            throw err
     }
 }
 
@@ -29,6 +33,8 @@ export const postRegister = async (authPayload: AuthPayload) => {
     } catch (err) {
         if (isAxiosError(err))
             throw new Error(err?.response?.data?.message);
+        else
+            throw err
     }
 }
 

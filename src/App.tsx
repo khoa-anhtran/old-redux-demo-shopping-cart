@@ -1,15 +1,15 @@
-import { useDispatch, useSelector } from 'react-redux'
 import './App.css'
 import { Route, Routes, useNavigate } from 'react-router-dom'
-import { lazy, Suspense, useEffect, useRef } from 'react'
-import { selectAuthError, selectAuthRTStatus, selectAuthStatus } from './pages/auth/selectors'
-import { accessTokenRefreshRequested, userLogoutRequested, userLogoutSucceeded } from './pages/auth/actions'
+import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useRef, useTransition } from 'react'
 import RequireGuest from './routes/RequireGuest'
 import RequireAuth from './routes/RequireAuth'
 import { ErrorBoundary } from 'react-error-boundary'
 import SimpleErrorPage from './pages/layout/SimpleErrorPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import { notify } from './utils/helpers'
+import useUserInfo from './hooks/useUserInfo'
+import { useSelector } from 'react-redux'
+import { selectToken } from './pages/auth/selectors'
 import { ROUTES } from './constants/routes'
 import { STATUS } from './constants/api'
 import Loading from './pages/layout/Loading'
@@ -22,35 +22,49 @@ const Login = lazy(() => import('./pages/auth/Login'))
 const Register = lazy(() => import('./pages/auth/Register'))
 
 function App() {
-  const dispatch = useDispatch();
   const navigate = useNavigate()
   const kicked = useRef(false);
+  const token = useSelector(selectToken)
 
-  const status = useSelector(selectAuthStatus);
-  const error = useSelector(selectAuthError);
-  const rts = useSelector(selectAuthRTStatus)
+  const [isLoading, startTransition] = useTransition()
+
+
+  const { refreshAction, logOut } = useUserInfo()
+
+  const onRefresh = useCallback(async () => {
+    startTransition(async () => {
+      try {
+        await refreshAction()
+        notify({ status: "succeeded", message: "Refresh successfully" })
+        navigate("/");
+      }
+      catch (err) {
+        console.error(err)
+      }
+    })
+  }, [navigate, refreshAction])
 
   // Kick off refresh exactly once when app starts idle
-  // useEffect(() => {
-  //   if (status === STATUS.IDLE && !kicked.current) {
-  //     dispatch(accessTokenRefreshRequested());
-  //     kicked.current = true;
-  //   }
+  useEffect(() => {
+    if (!kicked.current) {
+      onRefresh()
+      kicked.current = true
+    }
+  }, [])
 
-  //   if (status === "fail") {
-  //     dispatch(userLogoutSucceeded())
-  //     navigate(ROUTES.HOME)
-  //     notify({ status, error })
-  //   }
-  // }, [status, dispatch, error]);
+  useEffect(() => {
+    if (!kicked.current) {
+      console.log(token)
+      if (!token) {
+        logOut().then(() => {
+          notify({ status: "failed", message: "Your session is expired, please login again" })
+        })
+      }
+    }
+  }, [token])
 
-  // useEffect(() => {
-  //   if (rts === "expired" && status !== "fail") {
-  //     notify({ status: "fail", error: "Your session is expired, please login again" })
-  //     dispatch(userLogoutRequested())
-  //     navigate(ROUTES.HOME)
-  //   }
-  // }, [rts, dispatch, navigate, status])
+  if (isLoading)
+    return <LoadingSpinner overlay size={'lg'} label='Loading'></LoadingSpinner>
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>

@@ -4,14 +4,14 @@ import { selectProducts } from "../products/selectors"
 import { useDispatch } from "react-redux"
 import { selectCart, selectCartError, selectCartIsSelectAll, selectCartOpen, selectCartStatus, selectCartSyncError, selectCartSyncStatus } from "./selectors"
 import { cartToggled, checkedOut, fetchCartRequested, itemsRemoved, itemSelectedToggled, quantityDecreased, quantityIncreased, selectAllToggled } from "./actions"
-import { roundTo } from "@/utils/helpers"
-import { Modal } from "antd"
-import { selectAuth } from "../auth/selectors"
+import { notify, roundTo } from "@/utils/helpers"
+import { Modal, notification } from "antd"
+import LoadingSpinner from "@/components/LoadingSpinner"
 import CartHeader from "./components/CartHeader"
 import CartActions from "./components/CartActions"
 import CartList from "./components/CartList"
-import { STATUS } from "@/constants/api"
 import { useCart } from "@/hooks/useCart"
+import useUserInfo from "@/hooks/useUserInfo"
 
 
 const Cart = () => {
@@ -19,12 +19,16 @@ const Cart = () => {
 
     const { cartItems, isLoading, isSelectAll, open, selectedItems, totalQty, totalValues } = useCart()
     const products = useSelector(selectProducts)
+    const { userId } = useUserInfo()
 
     const previouslyFocused = useRef<HTMLElement | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
+    if (!userId)
+        throw new Error("User id is not existed")
+
     const onIncrease = useCallback((itemId: number) => {
-        dispatch(quantityIncreased(itemId))
+        dispatch(quantityIncreased(itemId, userId))
     }, [dispatch])
 
     const onDecrease = useCallback(async (itemId: number, currentQty: number) => {
@@ -33,11 +37,11 @@ const Cart = () => {
                 title: "Confirm Remove Item",
                 content: 'This cannot be undone.',
                 onOk: () => {
-                    dispatch(quantityDecreased(itemId))
+                    dispatch(quantityDecreased(itemId, userId))
                 }
             })
         } else
-            dispatch(quantityDecreased(itemId))
+            dispatch(quantityDecreased(itemId, userId))
 
     }, [dispatch])
 
@@ -55,7 +59,7 @@ const Cart = () => {
 
     const onCheckout = useCallback(async () => {
         Modal.confirm({
-            title: "Confirm Checkout", content: 'This cannot be undone.', onOk: () => dispatch(checkedOut(selectedItems))
+            title: "Confirm Checkout", content: 'This cannot be undone.', onOk: () => dispatch(checkedOut(selectedItems, userId))
         })
     }, [dispatch, selectedItems])
 
@@ -63,12 +67,12 @@ const Cart = () => {
         Modal.confirm({
             title: "Confirm Remove Item",
             content: 'This cannot be undone.',
-            onOk: () => dispatch(itemsRemoved(itemIds))
+            onOk: () => dispatch(itemsRemoved(itemIds, userId))
         })
     }, [dispatch])
 
     const onRefresh = useCallback(() => {
-        dispatch(fetchCartRequested())
+        dispatch(fetchCartRequested(userId))
     }, [dispatch])
 
     // lock scroll & manage focus

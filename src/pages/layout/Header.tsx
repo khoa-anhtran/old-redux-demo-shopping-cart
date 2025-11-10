@@ -2,13 +2,12 @@ import { useCallback, useMemo } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { cartToggled } from "../cart/actions"
 import { selectCart } from "../cart/selectors"
-import { userLogoutRequested } from "../auth/actions"
-import { selectAuth } from "../auth/selectors"
 import { notification } from "antd"
+import useUserInfo from "@/hooks/useUserInfo"
 
 const Header = () => {
     const dispatch = useDispatch()
-    const { email } = useSelector(selectAuth)
+    const { email, logOut } = useUserInfo()
     const cartItems = useSelector(selectCart)
 
     const totalQuantity = useMemo(() => {
@@ -21,8 +20,8 @@ const Header = () => {
         dispatch(cartToggled())
     }, [dispatch])
 
-    const onLogout = useCallback(() => {
-        dispatch(userLogoutRequested())
+    const onLogout = useCallback(async () => {
+        await logOut()
         notification.success({
             message: "Logout successfully",
         })

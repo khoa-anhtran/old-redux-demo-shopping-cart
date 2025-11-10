@@ -5,21 +5,19 @@ import { SagaIterator } from 'redux-saga';
 import { CartItem } from './reducers';
 import { cartSyncFailed, cartSyncSucceeded, fetchCartFailed, fetchCartSucceeded } from './actions';
 import { selectCart } from './selectors';
-import { selectAuth } from '../auth/selectors';
-import { refreshTokenSaga } from '../auth/middlewares';
+// import { selectAuth } from '../auth/selectors';
+// import { refreshTokenSaga } from '../auth/middlewares';
 import { fetchCart, putCartItems } from '@/services/cartService';
+import { Action } from 'redux';
+import { PayloadAction } from '@/types';
 import { notify } from '@/utils/helpers';
 import { STATUS } from '@/constants/api';
-import { PayloadAction } from '@/types';
 
 
-function* fetchCartSaga(): SagaIterator {
+function* fetchCartSaga(action: PayloadAction<{ userId: number }>): SagaIterator {
     try {
-        const { userId } = yield select(selectAuth);
-        const items: CartItem[] = yield call(
-            callApiWithRefresh,
-            () => fetchCart(userId)
-        );
+        const { userId } = action.payload!
+        const items: CartItem[] = yield call(fetchCart, userId)
         yield put(fetchCartSucceeded(items));
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -27,41 +25,16 @@ function* fetchCartSaga(): SagaIterator {
     }
 }
 
-function* putCartSaga(): SagaIterator {
+function* putCartSaga(action: PayloadAction<{ userId: number }>): SagaIterator {
     try {
+        const { userId } = action.payload!
         const items: CartItem[] = yield select(selectCart);
-        const { userId } = yield select(selectAuth);
-
-        yield call(
-            callApiWithRefresh,
-            (token) => putCartItems({ userId, items, accessToken: token })
-        );
-
+        yield call(putCartItems, { userId, items })
         yield put(cartSyncSucceeded());
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         yield put(cartSyncFailed(`Sync cart failed: ${message}`));
     }
-}
-
-function* callApiWithRefresh<T>(
-    thunk: (token: string) => Promise<T>
-): SagaIterator<T> {
-    let { accessToken } = yield select(selectAuth);
-
-    try {
-        return (yield call(thunk, accessToken)) as T;
-    } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-
-        if (!msg.match(/Invalid or expired token|401/)) throw e;
-    }
-
-    const ok: boolean = yield call(refreshTokenSaga);
-    if (!ok) throw new Error("Token refresh failed");
-
-    ({ accessToken } = yield select(selectAuth));
-    return (yield call(thunk, accessToken)) as T;
 }
 
 function* cartSaga() {

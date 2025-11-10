@@ -1,10 +1,10 @@
 import { STATUS } from "@/constants/api"
-import { selectAuth } from "@/pages/auth/selectors"
 import { fetchCartRequested } from "@/pages/cart/actions"
 import { selectCartStatus, selectCart, selectCartIsSelectAll, selectCartOpen } from "@/pages/cart/selectors"
 import { selectProducts } from "@/pages/products/selectors"
 import { useEffect, useMemo, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
+import useUserInfo from "./useUserInfo"
 
 export function useCart() {
     const dispatch = useDispatch()
@@ -12,7 +12,7 @@ export function useCart() {
     const status = useSelector(selectCartStatus)
     const cartItems = useSelector(selectCart)
     const isSelectAll = useSelector(selectCartIsSelectAll)
-    const { userId } = useSelector(selectAuth)
+    const { userId } = useUserInfo()
     const open = useSelector(selectCartOpen)
     const products = useSelector(selectProducts)
 
@@ -44,10 +44,13 @@ export function useCart() {
         return cartItems.filter(item => item.isSelected).map(item => item.id)
     }, [cartItems])
 
+    if (!userId)
+        throw new Error("User id is not existed")
+
     useEffect(() => {
         if (status === STATUS.IDLE && !isFetchingCart.current) {
             isFetchingCart.current = true
-            dispatch(fetchCartRequested())
+            dispatch(fetchCartRequested(userId))
         }
 
     }, [status, userId, dispatch])

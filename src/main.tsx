@@ -7,15 +7,16 @@ import '@/styles/index.scss'
 import { Provider } from 'react-redux'
 import store from './store/store'
 import { BrowserRouter } from 'react-router-dom'
+import UserInfoProvider from './contexts/UserInfoProvider';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <App />
+        <UserInfoProvider>
+          <App />
+        </UserInfoProvider>
       </BrowserRouter>
     </Provider>
   </StrictMode>,
 )
-
-console.log("React root rendered");

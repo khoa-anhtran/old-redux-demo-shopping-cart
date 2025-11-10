@@ -1,17 +1,13 @@
-// RequireGuest.tsx
 import { Navigate, Outlet } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { selectAuth, selectAuthStatus } from "@/pages/auth/selectors";
-import { STATUS } from "@/constants/api";
+import useAuth from "@/hooks/useUserInfo";
 
 export default function RequireGuest() {
-    const auth = useSelector(selectAuth);
-    const status = useSelector(selectAuthStatus);
+    const { userId } = useAuth()
 
-    const loading = (status === STATUS.LOADING);
-    if (loading) return null; // or a spinner
+    // const loading = (status === "loading");
+    // if (loading) return null; 
 
-    if (auth?.userId) return <Navigate to="/" replace />;
+    if (userId) return <Navigate to="/" replace />;
 
     return <Outlet />;
 }

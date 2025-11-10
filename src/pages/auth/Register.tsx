@@ -1,24 +1,25 @@
-import { useCallback, useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { Link, useNavigate } from "react-router-dom"
-import { selectAuthError, selectAuthStatus } from "./selectors"
-import { userRegistered } from "./actions"
-import { notification } from "antd"
+import useUserInfo from "@/hooks/useUserInfo"
+import { useCallback, useState, useTransition } from "react"
+import { Link } from "react-router-dom"
 
 export default function Register() {
-    const authStatus = useSelector(selectAuthStatus)
-    const authError = useSelector(selectAuthError)
+    const { registerAction } = useUserInfo()
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [error, setError] = useState<string | null>(null)
 
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
+    const [isLoading, startTransition] = useTransition()
 
-    const onRegister = useCallback((e: React.FormEvent) => {
+    const onRegister = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
-        dispatch(userRegistered({ email, password }))
-    }, [dispatch, email, password])
+
+        startTransition(async () => {
+            const err = await registerAction({ email, password })
+            if (err)
+                setError(err)
+        })
+    }, [email, password, registerAction])
 
     return (
         <div className="login">
@@ -45,13 +46,13 @@ export default function Register() {
                     <button
                         type="submit"
                         className="login__submit"
-                        disabled={authStatus === 'loading'}
+                        disabled={isLoading}
                     >
-                        {authStatus === 'loading' ? 'Signing up…' : 'Sign up'}
+                        {isLoading ? 'Signing up…' : 'Sign up'}
                     </button>
                 </form>
 
-                <div style={{ color: 'red' }}>{authStatus === "failed" ? authError : ""}</div>
+                <div style={{ color: 'red' }}>{error != undefined && error}</div>
 
                 <p className="login__hint">
                     Already have an account? <Link to={"/login"}>Sign in</Link>

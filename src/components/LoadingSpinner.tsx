@@ -69,15 +69,3 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 };
 
 export default LoadingSpinner;
-
-/* --------------------------------------------------------------
-   Usage examples
----------------------------------------------------------------*/
-// 1) Inline
-// <LoadingSpinner label="Loading data" />
-// 2) Larger size
-// <LoadingSpinner size="lg" label="Fetching products" />
-// 3) Determinate ring with progress
-// <LoadingSpinner progress={42} label="Uploading" />
-// 4) Fullscreen overlay during route transitions
-// <LoadingSpinner overlay label="Loading page" />

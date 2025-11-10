@@ -1,25 +1,26 @@
-import { useCallback, useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { Link, useNavigate } from "react-router-dom"
-import { userLogined } from "./actions"
-import { selectAuthError, selectAuthStatus } from "./selectors"
-import { notification } from "antd"
+import useUserInfo from "@/hooks/useUserInfo"
+import { useCallback, useState, useTransition } from "react"
+import { Link } from "react-router-dom"
 import { STATUS } from "@/constants/api"
+import { useSelector } from "react-redux"
 
 export default function Login() {
-
-    const isLoading = useSelector(selectAuthStatus) === STATUS.LOADING
-    const error = useSelector(selectAuthError)
+    const { loginAction } = useUserInfo()
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-
-    const dispatch = useDispatch()
+    const [error, setError] = useState<string | null>(null)
+    const [isLoading, startTransition] = useTransition()
 
     const onLogin = useCallback((e: React.FormEvent) => {
         e.preventDefault()
-        dispatch(userLogined({ email, password }))
-    }, [dispatch, email, password])
+
+        startTransition(async () => {
+            const err = await loginAction({ email, password })
+            if (err)
+                setError(err)
+        })
+    }, [email, password, loginAction])
 
     return (
         <div className="login">

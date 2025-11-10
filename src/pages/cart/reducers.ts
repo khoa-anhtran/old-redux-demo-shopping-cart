@@ -1,6 +1,6 @@
 import { PayloadAction } from "@/types"
 import { CART_FETCH_FAILED, CART_FETCH_REQUESTED, CART_FETCH_SUCCEEDED, CART_SYNC_FAILED, CART_SYNC_SUCCEEDED, CART_TOGGLE, CHECKED_OUT, ITEM_ADDED, ITEM_SELECTED_TOGGLED, ITEMS_REMOVED, QUANTITY_DECREASED, QUANTITY_INCREASED, SELECT_ALL_TOGGLED } from "./actionTypes"
-import { USER_LOGOUT_SUCCEEDED } from "../auth/actionTypes";
+import { TOKEN_REMOVED } from "../auth/actionTypes";
 import { STATUS } from "@/constants/api";
 import { notify } from "@/utils/helpers";
 
@@ -214,7 +214,7 @@ const cartReducer = (state = initialState, action: CartPayloadAction): CartState
             }
         }
 
-        case USER_LOGOUT_SUCCEEDED: {
+        case TOKEN_REMOVED: {
             return initialState;
         }
 
