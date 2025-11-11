@@ -1,5 +1,5 @@
-import { useDispatch, useSelector } from "react-redux"
-import { useCallback, useEffect, useRef } from "react"
+import { useDispatch } from "react-redux"
+import { useCallback } from "react"
 import ProductGrid from "./components/ProductGrid"
 import { itemAdded } from "../cart/actions"
 import { useProducts } from "@/hooks/useProducts"
@@ -12,7 +12,7 @@ const Products = () => {
 
     const onAddToCart = useCallback((productId: number) => {
         dispatch(itemAdded(productId, userId!))
-    }, [dispatch])
+    }, [dispatch, userId])
 
     if (!isLoading)
         return <section className="product-section">

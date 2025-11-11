@@ -1,43 +1,28 @@
 import useUserInfo from "@/hooks/useUserInfo"
-import { useCallback, useEffect, useState, useTransition } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { STATUS } from "@/constants/api"
-import { useSelector } from "react-redux"
+import { useCallback, useState, useTransition } from "react"
+import { Link } from "react-router-dom"
 
 export default function Login() {
-    const { loginAction, refreshAction } = useUserInfo()
+    const { loginAction } = useUserInfo()
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState<string | null>(null)
-    const [isLoading, startTransition] = useTransition()
+    const [submitting, setSubmitting] = useState(false);
 
-    const navigate = useNavigate()
-
-    const onRefresh = useCallback(async () => {
-        startTransition(async () => {
-            try {
-                await refreshAction()
-            }
-            catch (err) {
-                console.error(err)
-            }
-        })
-    }, [navigate, refreshAction])
-
-    useEffect(() => {
-        onRefresh().then()
-    }, [])
-
-    const onLogin = useCallback((e: React.FormEvent) => {
-        e.preventDefault()
-
-        startTransition(async () => {
-            const err = await loginAction({ email, password })
-            if (err)
-                setError(err)
-        })
-    }, [email, password, loginAction])
+    const onLogin = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setSubmitting(true);
+        try {
+            const err = await loginAction({ email, password });
+            if (err) setError(err);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Unexpected error");
+        } finally {
+            setSubmitting(false);
+        }
+    }, [email, password, loginAction]);
 
     return (
         <div className="login">
@@ -64,9 +49,9 @@ export default function Login() {
                     <button
                         type="submit"
                         className="login__submit"
-                        disabled={isLoading}
+                        disabled={submitting}
                     >
-                        {isLoading ? 'Signing in…' : 'Sign in'}
+                        {submitting ? 'Signing in…' : 'Sign in'}
                     </button>
                 </form>
 

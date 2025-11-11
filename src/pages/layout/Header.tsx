@@ -2,7 +2,6 @@ import { useCallback, useMemo } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { cartToggled } from "../cart/actions"
 import { selectCart } from "../cart/selectors"
-import { notification } from "antd"
 import useUserInfo from "@/hooks/useUserInfo"
 
 const Header = () => {
@@ -22,7 +21,7 @@ const Header = () => {
 
     const onLogout = useCallback(async () => {
         await logOut()
-    }, [dispatch])
+    }, [logOut])
 
     return <header className="app-header">
         <div className="nav">

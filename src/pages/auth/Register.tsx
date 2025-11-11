@@ -8,18 +8,21 @@ export default function Register() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState<string | null>(null)
-
-    const [isLoading, startTransition] = useTransition()
+    const [submitting, setSubmitting] = useState(false);
 
     const onRegister = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault()
-
-        startTransition(async () => {
-            const err = await registerAction({ email, password })
-            if (err)
-                setError(err)
-        })
-    }, [email, password, registerAction])
+        e.preventDefault();
+        setError(null);
+        setSubmitting(true);
+        try {
+            const err = await registerAction({ email, password });
+            if (err) setError(err);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Unexpected error");
+        } finally {
+            setSubmitting(false);
+        }
+    }, [email, password, registerAction]);
 
     return (
         <div className="login">
@@ -46,9 +49,9 @@ export default function Register() {
                     <button
                         type="submit"
                         className="login__submit"
-                        disabled={isLoading}
+                        disabled={submitting}
                     >
-                        {isLoading ? 'Signing up…' : 'Sign up'}
+                        {submitting ? 'Signing up…' : 'Sign up'}
                     </button>
                 </form>
 

@@ -1,4 +1,4 @@
-import { FetchStatus, PayloadAction } from "@/types"
+import { PayloadAction } from "@/types"
 import { PRODUCTS_FETCH_FAILED, PRODUCTS_FETCH_REQUESTED, PRODUCTS_FETCH_SUCCEEDED } from "./actionTypes"
 import { STATUS } from "@/constants/api"
 

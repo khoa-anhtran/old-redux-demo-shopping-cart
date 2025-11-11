@@ -1,14 +1,9 @@
 import { AuthPayload } from "@/pages/auth/reducers";
 import { postLogin, postLogout, postRefreshToken } from "@/services/authService";
-import { notify } from "@/utils/helpers";
 import { useState, ReactNode, useCallback } from "react";
-import AuthContext from "./UserInfoContext";
-import { useDispatch } from "react-redux";
-import { tokenAdded, tokenRemoved } from "@/pages/auth/actions";
-import store from "@/store/store";
+import UserInfoContext from "./UserInfoContext";
 
 const UserInfoProvider = ({ children }: { children: ReactNode }) => {
-    const dispatch = useDispatch()
     const [userId, setUserId] = useState<null | number>(null);
     const [email, setEmail] = useState<null | string>(null);
 
@@ -20,8 +15,6 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
                 const { email, id } = data.user
                 setUserId(id);
                 setEmail(email)
-                notify({ status: "succeeded", message: "Register successfully" })
-                dispatch(tokenAdded(data.accessToken))
                 return;
             }
 
@@ -39,7 +32,6 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
                 const { email, id } = data.user
                 setUserId(id);
                 setEmail(email)
-                dispatch(tokenAdded(data.accessToken))
                 return;
             }
 
@@ -51,7 +43,6 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
 
     const logOut = useCallback(async () => {
         await postLogout()
-        dispatch(tokenRemoved())
         setUserId(null);
         setEmail(null);
     }, []);
@@ -64,7 +55,6 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
                 const { email, id } = data.user
                 setUserId(id);
                 setEmail(email)
-                dispatch(tokenAdded(data.accessToken))
                 return;
             }
 
@@ -75,9 +65,9 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
     }, [])
 
     return (
-        <AuthContext value={{ userId, email, loginAction, registerAction, refreshAction, logOut }}>
+        <UserInfoContext value={{ userId, email, loginAction, registerAction, refreshAction, logOut }}>
             {children}
-        </AuthContext>
+        </UserInfoContext>
     );
 
 };

@@ -3,18 +3,23 @@ import api from "./api"
 import { isAxiosError } from "axios"
 import { notify } from "@/utils/helpers";
 import { STATUS } from "@/constants/api";
+import store from "@/store/store";
+import { tokenAdded, tokenRemoved } from "@/pages/auth/actions";
 
 export const postRefreshToken = async () => {
     try {
-        const res = await api.post<AuthResponse>("/auth/refresh");
+        const res = await api.post<AuthResponse>("/auth/refresh", null,
+            { headers: { "x-retried": "1" } });
 
         if (res.status === 200) {
             notify({ status: STATUS.SUCCESS, message: "Refresh successfully" })
+            store.dispatch(tokenAdded(res.data.accessToken))
             return res.data;
         }
     } catch (err) {
-        if (isAxiosError(err))
+        if (isAxiosError(err)) {
             throw new Error(err?.response?.data?.message);
+        }
         else
             throw err
     }
@@ -26,6 +31,7 @@ export const postLogin = async (authPayload: AuthPayload) => {
 
         if (res?.status === 200) {
             notify({ status: STATUS.SUCCESS, message: "Login successfully" })
+            store.dispatch(tokenAdded(res.data.accessToken))
             return res.data;
         }
     } catch (err) {
@@ -44,6 +50,7 @@ export const postRegister = async (authPayload: AuthPayload) => {
 
         if (res.status === 200) {
             notify({ status: STATUS.SUCCESS, message: "Register successfully" })
+            store.dispatch(tokenAdded(res.data.accessToken))
             return res.data;
         }
     } catch (err) {
@@ -57,8 +64,10 @@ export const postRegister = async (authPayload: AuthPayload) => {
 export const postLogout = async () => {
     try {
         const res = await api.post<AuthResponse>("/auth/logout");
+
         if (res.status === 204) {
             notify({ status: STATUS.SUCCESS, message: "Logout successfully" })
+            store.dispatch(tokenRemoved())
             return true;
         }
     } catch (err) {

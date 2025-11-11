@@ -3,7 +3,7 @@ import { call, put, takeLatest } from 'redux-saga/effects'
 import { fetchProducts } from '../../services/productService'
 import { PRODUCTS_FETCH_FAILED, PRODUCTS_FETCH_REQUESTED, PRODUCTS_FETCH_SUCCEEDED } from './actionTypes'
 import { SagaIterator } from 'redux-saga';
-import { Product, ProductState } from './reducers';
+import { Product } from './reducers';
 import { fetchProductsFailed, fetchProductsSucceeded } from './actions';
 import { notify } from '@/utils/helpers';
 import { STATUS } from '@/constants/api';

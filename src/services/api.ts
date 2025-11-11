@@ -1,10 +1,11 @@
-import { tokenAdded, tokenRemoved } from "@/pages/auth/actions";
+import { tokenRemoved } from "@/pages/auth/actions";
 import { STATUS } from "@/constants/api";
 import { LOADING_STYLE } from "@/constants/ui";
 import { hideLoading, showLoading } from "@/pages/layout/ui/uiActions";
 import store from "@/store/store";
 import { notify } from "@/utils/helpers";
 import axios, { AxiosError } from "axios";
+import { postRefreshToken } from "./authService";
 
 const api = axios.create({
     baseURL: "http://localhost:4000",
@@ -40,15 +41,21 @@ api.interceptors.response.use(
     async (err: AxiosError) => {
         store.dispatch(hideLoading())
         const original = err.config!;
-        if (!original.headers["x-retried"]) {
+        const message = (err.response?.data as { message: string })?.message ?? ""
+
+
+        if (!original.headers["x-retried"] && err.status === 401 && message.match(/Invalid or expired token/)) {
             original.headers["x-retried"] = "1";
 
-            refreshing ??= fetch("/auth/refresh", { method: "POST" })
-                .then(r => (r.ok ? r.json() : null))
+            refreshing ??= postRefreshToken()
                 .then(data => {
                     const newToken = data?.accessToken ?? null;
-                    if (newToken) store.dispatch(tokenAdded(newToken))
                     return newToken;
+                })
+                .catch(() => {
+                    store.dispatch(tokenRemoved())
+                    notify({ status: STATUS.FAIL, message: "Your session is expired, please login again" })
+                    return null
                 })
                 .finally(() => { refreshing = null; });
 
@@ -61,8 +68,6 @@ api.interceptors.response.use(
         }
 
         const data = err.response?.data as { message: string }
-
-        store.dispatch(tokenRemoved())
 
         throw new Error(data.message ?? err.message);
     }
