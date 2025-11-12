@@ -5,7 +5,6 @@ import { notify } from "@/utils/helpers";
 import { STATUS } from "@/constants/api";
 import store from "@/store/store";
 import { tokenAdded, tokenRemoved } from "@/pages/auth/actions";
-import { head } from "node_modules/axios/index.cjs";
 
 export const postRefreshToken = async () => {
     try {

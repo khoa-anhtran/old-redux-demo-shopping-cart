@@ -1,5 +1,5 @@
 import useUserInfo from "@/hooks/useUserInfo"
-import { useCallback, useState, useTransition } from "react"
+import { useCallback, useState } from "react"
 import { Link } from "react-router-dom"
 
 export default function Register() {

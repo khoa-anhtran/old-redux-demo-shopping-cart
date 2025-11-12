@@ -2,8 +2,7 @@ import { AuthPayload } from "@/pages/auth/reducers";
 import { getUserInfo, postLogin, postLogout, postRefreshToken } from "@/services/authService";
 import { useState, ReactNode, useCallback } from "react";
 import UserInfoContext from "./UserInfoContext";
-import { PublicClientApplication } from "@azure/msal-browser";
-import { config } from "@/config";
+import { config } from "@/msal/config";
 import { useDispatch } from "react-redux";
 import { tokenAdded } from "@/pages/auth/actions";
 import { getApiToken, initAccount, msalClient } from "@/msal";
@@ -13,6 +12,8 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
 
     const [userId, setUserId] = useState<null | number>(null);
     const [email, setEmail] = useState<null | string>(null);
+
+    const { apiScope, scopes } = config
 
     const registerAction = useCallback(async (authPayload: AuthPayload) => {
         try {
@@ -50,17 +51,13 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
 
     const MSLoginAction = useCallback(async () => {
         try {
-            const { scopes } = config
-
             const data = await msalClient.loginPopup({ scopes })
 
-            const API_SCOPE = "api://3641fc9d-2752-4e3e-9d1b-3e012410ed0a/access_as_user";
-
-            const { accessToken } = await msalClient.acquireTokenSilent({ scopes: [API_SCOPE] })
-                .catch(() => msalClient.acquireTokenPopup({ scopes: [API_SCOPE] }));
+            const { accessToken } = await msalClient.acquireTokenSilent({ scopes: [apiScope] })
+                .catch(() => msalClient.acquireTokenPopup({ scopes: [apiScope] }));
 
             if (data) {
-                const { username, tenantId } = data.account
+                const { username } = data.account
                 const { userId } = await getUserInfo(accessToken) as { userId: number }
 
                 setUserId(userId);
@@ -73,7 +70,7 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
             const error = err instanceof Error ? err.message : String(err);
             return error
         }
-    }, [])
+    }, [dispatch, apiScope, scopes])
 
     const logOut = useCallback(async () => {
         const account = msalClient.getActiveAccount();
@@ -81,7 +78,6 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
         if (account) {
             await msalClient.logoutPopup({ account })
             msalClient.clearCache()
-
         }
 
         await postLogout()
@@ -102,28 +98,23 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
             }
 
         } catch (err) {
-
-            const API_SCOPE = "api://3641fc9d-2752-4e3e-9d1b-3e012410ed0a/access_as_user";
-
             const currentAccount = initAccount()
 
             if (currentAccount) {
-                const { accessToken, email } = await getApiToken(API_SCOPE)
+                const { accessToken, email } = await getApiToken(apiScope)
 
-                const data = await getUserInfo(accessToken)
+                const { userId } = await getUserInfo(accessToken) as { userId: number }
 
-                if (data) {
-                    setUserId(data.userId);
-                    setEmail(email)
-                    dispatch(tokenAdded(accessToken))
-                }
+                setUserId(userId);
+                setEmail(email)
+                dispatch(tokenAdded(accessToken))
             }
             else {
                 const error = err instanceof Error ? err.message : String(err);
                 throw error
             }
         }
-    }, [])
+    }, [dispatch, apiScope])
 
     return (
         <UserInfoContext value={{ userId, email, loginAction, registerAction, refreshAction, logOut, MSLoginAction }}>

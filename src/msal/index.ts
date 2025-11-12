@@ -1,4 +1,4 @@
-import { config } from "@/config";
+import { config } from "@/msal/config";
 import { InteractionRequiredAuthError, PublicClientApplication } from "@azure/msal-browser";
 
 const { authority, clientId, redirectUri } = config
@@ -10,7 +10,6 @@ export const msalClient = new PublicClientApplication({
     }
 })
 
-// Call once on app start
 export function initAccount() {
     const active = msalClient.getActiveAccount();
     if (active) return active;
@@ -20,21 +19,24 @@ export function initAccount() {
         msalClient.setActiveAccount(accounts[0]);
         return accounts[0];
     }
-    
+
     return null;
 }
 
 export async function getApiToken(scope: string) {
-    let account = msalClient.getActiveAccount() ?? initAccount();
+    const account = msalClient.getActiveAccount() ?? initAccount();
     if (!account) {
-        // Optional silent SSO if you have a loginHint or sid from a previous login
-        try {
-            const sso = await msalClient.ssoSilent({ loginHint: "<optional-email>" });
-            account = sso.account ?? null;
-            if (account) msalClient.setActiveAccount(account);
-        } catch {
-            throw new Error("no_account");
-        }
+        // // Optional silent SSO if you have a loginHint or sid from a previous login
+        // try {
+        //     const sso = await msalClient.ssoSilent({ loginHint: "<optional-email>" });
+        //     account = sso.account ?? null;
+        //     if (account) msalClient.setActiveAccount(account);
+        // } catch {
+        //     throw new Error("no_account");
+        // }
+
+        throw new Error("no_account");
+
     }
 
     try {

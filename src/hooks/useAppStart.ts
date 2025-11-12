@@ -3,8 +3,6 @@ import { useRef, useEffect } from "react";
 import { useSelector } from "react-redux";
 import useUserInfo from "./useUserInfo";
 import { msalClient } from "@/msal";
-import { useDispatch } from "react-redux";
-import { tokenAdded } from "@/pages/auth/actions";
 
 export const useAppStart = () => {
     const { userId, refreshAction, logOut } = useUserInfo()
