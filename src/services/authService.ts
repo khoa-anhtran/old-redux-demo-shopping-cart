@@ -77,3 +77,16 @@ export const postLogout = async () => {
         return false
     }
 }
+
+export const getUserInfo = async () => {
+    try {
+        const res = await api.get<any>("/auth/me");
+
+        if (res.status === 204) {
+            return res.data;
+        }
+    } catch (err) {
+        if (isAxiosError(err))
+            throw new Error(err?.response?.data?.message);
+    }
+}

@@ -1,8 +1,8 @@
-import AuthContext from "@/contexts/UserInfoContext";
+import UserInfoContext from "@/contexts/UserInfoContext";
 import { useContext } from "react";
 
 export default function useUserInfo() {
-    const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
+    const ctx = useContext(UserInfoContext);
+    if (!ctx) throw new Error("useUserInfo must be used within <UserInfoProvider>");
     return ctx
 };

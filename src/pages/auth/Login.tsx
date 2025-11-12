@@ -1,9 +1,9 @@
 import useUserInfo from "@/hooks/useUserInfo"
-import { useCallback, useState, useTransition } from "react"
+import { useCallback, useState } from "react"
 import { Link } from "react-router-dom"
 
 export default function Login() {
-    const { loginAction } = useUserInfo()
+    const { loginAction, MSLoginAction } = useUserInfo()
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -23,6 +23,20 @@ export default function Login() {
             setSubmitting(false);
         }
     }, [email, password, loginAction]);
+
+    const onMsLogin = useCallback(async (e: React.MouseEvent) => {
+        e.preventDefault();
+        setError(null);
+        setSubmitting(true);
+        try {
+            const err = await MSLoginAction();
+            if (err) setError(err);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Unexpected error");
+        } finally {
+            setSubmitting(false);
+        }
+    }, [MSLoginAction]);
 
     return (
         <div className="login">
@@ -73,7 +87,7 @@ export default function Login() {
                         <span>Continue with Google</span>
                     </button>
 
-                    <button>
+                    <button onClick={onMsLogin}>
                         <span className="login__icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                                 <path d="M96 96L310.6 96L310.6 310.6L96 310.6L96 96zM329.4 96L544 96L544 310.6L329.4 310.6L329.4 96zM96 329.4L310.6 329.4L310.6 544L96 544L96 329.4zM329.4 329.4L544 329.4L544 544L329.4 544L329.4 329.4z" />

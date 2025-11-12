@@ -2,8 +2,15 @@ import { AuthPayload } from "@/pages/auth/reducers";
 import { postLogin, postLogout, postRefreshToken } from "@/services/authService";
 import { useState, ReactNode, useCallback } from "react";
 import UserInfoContext from "./UserInfoContext";
+import { PublicClientApplication } from "@azure/msal-browser";
+import { config } from "@/config";
+import { useDispatch } from "react-redux";
+import { tokenAdded } from "@/pages/auth/actions";
+import { getApiToken, initAccount, msalClient } from "@/msal";
 
 const UserInfoProvider = ({ children }: { children: ReactNode }) => {
+    const dispatch = useDispatch()
+
     const [userId, setUserId] = useState<null | number>(null);
     const [email, setEmail] = useState<null | string>(null);
 
@@ -41,8 +48,42 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [])
 
+    const MSLoginAction = useCallback(async () => {
+        try {
+            const { scopes } = config
+
+            const data = await msalClient.loginPopup({ scopes })
+
+            const API_SCOPE = "api://3641fc9d-2752-4e3e-9d1b-3e012410ed0a/access_as_user";
+
+            const { accessToken } = await msalClient.acquireTokenSilent({ scopes: [API_SCOPE] })
+                .catch(() => msalClient.acquireTokenPopup({ scopes: [API_SCOPE] }));
+
+            if (data) {
+                const { username, tenantId } = data.account
+                setUserId(4);
+                setEmail(username)
+                dispatch(tokenAdded(accessToken))
+                return;
+            }
+
+        } catch (err) {
+            const error = err instanceof Error ? err.message : String(err);
+            return error
+        }
+    }, [])
+
     const logOut = useCallback(async () => {
+        const account = msalClient.getActiveAccount();
+
+        if (account) {
+            await msalClient.logoutPopup({ account })
+            msalClient.clearCache()
+
+        }
+
         await postLogout()
+
         setUserId(null);
         setEmail(null);
     }, []);
@@ -59,13 +100,27 @@ const UserInfoProvider = ({ children }: { children: ReactNode }) => {
             }
 
         } catch (err) {
-            const error = err instanceof Error ? err.message : String(err);
-            throw error
+
+            const API_SCOPE = "api://3641fc9d-2752-4e3e-9d1b-3e012410ed0a/access_as_user";
+
+            const currentAccount = initAccount()
+
+            if (currentAccount) {
+                const { accessToken, email } = await getApiToken(API_SCOPE)
+
+                setUserId(4);
+                setEmail(email)
+                dispatch(tokenAdded(accessToken))
+            }
+            else {
+                const error = err instanceof Error ? err.message : String(err);
+                throw error
+            }
         }
     }, [])
 
     return (
-        <UserInfoContext value={{ userId, email, loginAction, registerAction, refreshAction, logOut }}>
+        <UserInfoContext value={{ userId, email, loginAction, registerAction, refreshAction, logOut, MSLoginAction }}>
             {children}
         </UserInfoContext>
     );

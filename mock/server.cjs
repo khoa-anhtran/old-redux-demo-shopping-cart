@@ -2,14 +2,39 @@ const jsonServer = require('json-server')
 const path = require('node:path')
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const jose = require('jose')
+const passport = require('passport')
+const passportAzureAd = require('passport-azure-ad')
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { nanoid } = require('nanoid');
+const { error } = require('node:console');
 
 const SECRET = 'dev_secret_change_me';
 const JWT_REFRESH_SECRET = 'refresh_secret_change_me';
 const ACCESS_TTL = '10s';
 const REFRESH_TTL = '30d';
+
+const API_AUDIENCE = "api://e695dd6d-99a5-49f8-92bf-6cf2558fbbb7";
+const ISSUER_HOST = "https://login.microsoftonline.com/khoa88108gmail.onmicrosoft.com";
+
+const authConfig = {
+  credentials: {
+    tenantID: "3b2316d2-2ac9-4a2a-9d81-5ede099d8bc2",
+    clientID: "3641fc9d-2752-4e3e-9d1b-3e012410ed0a"
+  },
+  metadata: {
+    authority: "login.microsoftonline.com",
+    discovery: ".well-known/openid-configuration",
+    version: "v2.0"
+  },
+  settings: {
+    validateIssuer: true,
+    passReqToCallback: true,
+    loggingLevel: "info",
+    loggingNoPII: true,
+  },
+}
 
 const server = jsonServer.create()
 const router = jsonServer.router(path.join(__dirname, 'db.json'))
@@ -20,6 +45,42 @@ server.db = router.db
 server.use(middlewares)
 server.use(jsonServer.bodyParser);
 server.use(cookieParser())
+
+const bearerStrategy = new passportAzureAd.BearerStrategy({
+  // Use COMMON + v2 metadata (not a fixed tenant)
+  identityMetadata:
+    'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
+
+  // Do NOT hard-code issuer for multi-tenant
+  validateIssuer: false,              // or supply your own issuer validation fn
+  issuer: undefined,                  // remove the fixed issuer
+
+  clientID: authConfig.credentials.clientID, // your API app's Application (client) ID
+
+  // Passport-AAD checks `aud` against clientID.
+  // If your tokens target an App ID URI, ensure the SPA requests a scope that maps to this clientID.
+  audience: authConfig.credentials.clientID,
+
+  passReqToCallback: true,
+  loggingLevel: 'warn',
+  loggingNoPII: true,
+}, (req, token, done) => {
+
+  if (!token.hasOwnProperty('scp') && !token.hasOwnProperty('roles')) {
+    return done(new Error('Unauthorized'), null, "No delegated or app permission claims found");
+  }
+
+  const name =
+    token.name ??
+    (token.given_name && token.family_name ? `${token.given_name} ${token.family_name}` : undefined);
+  const email =
+    (Array.isArray(token.emails) ? token.emails[0] : undefined) ??
+    token.email ??
+    token.preferred_username;
+
+  return done(null, { sub: token.sub, tid: token.tid, name, email }, token);
+});
+
 
 function signToken(payload) {
   return jwt.sign(payload, SECRET, { expiresIn: ACCESS_TTL });
@@ -38,7 +99,51 @@ function revokeRefreshToken(db, jti) {
   dbWrite(db);
 }
 
-function authMiddleware(req, res, next) {
+async function verifyMsAccessTokenMiddleware(req, res, next) {
+  passport.authenticate('oauth-bearer', {
+    session: false
+  }, (err, user, info) => {
+    if (err) {
+      return res.status(401).json({ error: err.message });
+    }
+
+    if (!user) {
+      // If no user object found, send a 401 response.
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (info) {
+      // access token payload will be available in req.authInfo downstream
+      req.authInfo = info;
+      return next();
+    }
+  });
+}
+
+async function verifyMsAccessToken(token, audience) {
+  const { iss, tid, aud } = jose.decodeJwt(token)
+  if (!iss || !tid) throw new Error("bad_token");
+
+  // Pick metadata URL by version
+  const metadataUrl = `https://login.microsoftonline.com/${tid}/.well-known/openid-configuration`
+
+  // Fetch jwks_uri from metadata (Node 18+ has global fetch; otherwise install 'undici')
+  const metadata = await (await fetch(metadataUrl)).json();
+  const jwksUri = metadata.jwks_uri;
+
+  const jwks = jose.createRemoteJWKSet(new URL(jwksUri));
+
+  // IMPORTANT: issuer must equal the token's iss exactly
+  const { payload } = await jose.jwtVerify(token, jwks, {
+    issuer: iss,
+    audience,            // e.g., "api://<API_CLIENT_ID>" for v2 or your App ID URI for v1
+    algorithms: ["RS256"]
+  });
+
+  return payload;
+}
+
+async function authMiddleware(req, res, next) {
   const h = req.headers.authorization || '';
   const token = h.startsWith('Bearer ') ? h.slice(7) : null;
   if (!token) return res.status(401).json({ message: 'Missing token' });
@@ -47,7 +152,13 @@ function authMiddleware(req, res, next) {
     req.user = decoded;
     next();
   } catch (e) {
-    res.status(401).json({ message: 'Invalid or expired token' });
+    return passport.authenticate('oauth-bearer', { session: false }, (err, user, info) => {
+      if (err) return res.status(401).json({ error: err.message });
+      if (!user) return res.status(401).json({ error: "Unauthenticated" });
+      req.user = user;          // you get { sub, tid, name, email }
+      req.authInfo = info;      // full token claims if needed
+      next();
+    })(req, res, next);
   }
 }
 
@@ -196,6 +307,12 @@ server.post('/auth/logout', (req, res) => {
   res.status(204).end();
 });
 
+server.get('/auth/me', authMiddleware, (req, res) => {
+  const user = req.user
+
+  return res.status(204).json(user)
+})
+
 server.use(cors({
   origin: ['http://localhost:4173', 'http://localhost:5173'], // no "*"
   credentials: true,                 // allow cookies/Authorization
@@ -211,6 +328,10 @@ server.use((req, res, next) => {
     next();
   }, delay);
 });
+
+server.use(passport.initialize());
+
+passport.use(bearerStrategy);
 
 // auth routes
 server.use('/api/carts', authMiddleware);

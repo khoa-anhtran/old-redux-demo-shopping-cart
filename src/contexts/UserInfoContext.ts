@@ -8,6 +8,7 @@ export type UserInfoCtx = {
     registerAction: (payload: AuthPayload) => Promise<void | string>,
     refreshAction: () => Promise<void>
     logOut: () => Promise<void>
+    MSLoginAction: () => Promise<void | string>
 }
 
 const UserInfoContext = createContext<UserInfoCtx>({
@@ -16,7 +17,8 @@ const UserInfoContext = createContext<UserInfoCtx>({
     loginAction: async () => { },
     registerAction: async () => { },
     refreshAction: async () => { },
-    logOut: async () => { }
+    logOut: async () => { },
+    MSLoginAction: async () => { }
 });
 
 export default UserInfoContext
